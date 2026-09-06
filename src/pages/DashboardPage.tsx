@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, Package, TrendingUp, Heart, MoreVertical, Edit3, Trash2, CheckCircle2, Circle, Clock } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase, LISTING_COLUMNS } from '@/lib/supabase';
 import { useRouter } from '@/context/RouterContext';
 import { useAuth } from '@/context/AuthContext';
 import type { Listing } from '@/lib/types';
@@ -23,14 +23,14 @@ export default function DashboardPage() {
     async function load() {
       const { data: myListings } = await supabase
         .from('listings')
-        .select('*, seller:seller_id(*)')
+        .select(`${LISTING_COLUMNS}, seller:seller_id(*)`)
         .eq('seller_id', user!.id)
         .order('created_at', { ascending: false });
       setListings((myListings || []) as Listing[]);
 
       const { data: favs } = await supabase
         .from('favorites')
-        .select('listing:listing_id(*, seller:seller_id(*))')
+        .select(`listing:listing_id(${LISTING_COLUMNS}, seller:seller_id(*))`)
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
       setFavorites((favs?.map((f) => f.listing).filter(Boolean) || []) as unknown as Listing[]);
