@@ -138,7 +138,7 @@ export default function ChatPage({ conversationId }: { conversationId: string })
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-gray-900 text-sm truncate">{otherParty?.full_name || 'Unknown'}</p>
-          <p className="text-[10px] text-gray-400">UL Student</p>
+          <p className="text-[10px] text-gray-400">Marketplace member</p>
         </div>
       </header>
 
