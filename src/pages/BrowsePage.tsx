@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Search, SlidersHorizontal, X, GraduationCap } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase, LISTING_COLUMNS } from '@/lib/supabase';
 import type { Listing, Category, Condition, MeetupLocation } from '@/lib/types';
 import {
   CATEGORIES, CONDITIONS, MEETUP_LOCATIONS,
@@ -26,7 +26,7 @@ export default function BrowsePage() {
     setLoading(true);
     const query = supabase
       .from('listings')
-      .select('*, seller:seller_id(*)')
+      .select(`${LISTING_COLUMNS}, seller:seller_id(*)`)
       .eq('status', 'active')
       .order('created_at', { ascending: false });
 
