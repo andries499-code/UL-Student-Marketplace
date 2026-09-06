@@ -27,6 +27,7 @@ export default function BrowsePage() {
     const query = supabase
       .from('listings')
       .select('*, seller:seller_id(*)')
+      .eq('status', 'active')
       .order('created_at', { ascending: false });
 
     const { data, error } = await query;
