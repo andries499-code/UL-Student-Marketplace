@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, LogOut, Save, Mail, Phone, User, ShieldCheck, Package } from 'lucide-react';
+import { ChevronLeft, LogOut, Save, Mail, Phone, User, Package } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from '@/context/RouterContext';
 import { useAuth } from '@/context/AuthContext';
@@ -166,10 +166,7 @@ export default function ProfilePage({ userId }: Props) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg font-bold text-gray-900 truncate">{viewProfile?.full_name || 'Unknown'}</h2>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-xs text-emerald-600 font-medium">Verified UL Student</span>
-                  </div>
+                  <span className="text-xs text-gray-400 font-medium">UL Student Market member</span>
                   {isOwnProfile && (
                     <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                       <Mail className="w-3 h-3" />
