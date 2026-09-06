@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import {
   ChevronLeft, Heart, MapPin, MessageCircle, Edit3, Trash2,
-  BookOpen, Zap, Package, Loader2,
+  BookOpen, Zap, Package, Loader2, Flag,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase, LISTING_COLUMNS } from '@/lib/supabase';
 import { useRouter } from '@/context/RouterContext';
 import { useAuth } from '@/context/AuthContext';
 import type { Listing } from '@/lib/types';
 import { formatPrice, timeAgo, CATEGORY_COLORS, CONDITION_COLORS } from '@/lib/constants';
 import ImageGallery from '@/components/ImageGallery';
 import CategoryIcon from '@/components/CategoryIcon';
+import ReportModal from '@/components/ReportModal';
 
 interface Props {
   id: string;
@@ -19,17 +20,19 @@ export default function ListingDetailPage({ id }: Props) {
   const { navigate } = useRouter();
   const { user } = useAuth();
   const [listing, setListing] = useState<Listing | null>(null);
+  const [preciseSpot, setPreciseSpot] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [favorited, setFavorited] = useState(false);
   const [startingChat, setStartingChat] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
       const { data, error } = await supabase
         .from('listings')
-        .select('*, seller:seller_id(*)')
+        .select(`${LISTING_COLUMNS}, seller:seller_id(*)`)
         .eq('id', id)
         .maybeSingle();
 
@@ -39,6 +42,15 @@ export default function ListingDetailPage({ id }: Props) {
         return;
       }
       setListing(data as Listing);
+
+      // precise_spot is restricted at the database level. This returns a
+      // value only if the current user is the seller, or has an existing
+      // conversation about this listing — otherwise it returns null and we
+      // show a "message the seller" prompt instead.
+      if (user) {
+        const { data: spot } = await supabase.rpc('get_precise_spot', { p_listing_id: id });
+        setPreciseSpot(spot ?? null);
+      }
 
       if (user) {
         const { data: fav } = await supabase
@@ -136,12 +148,21 @@ export default function ListingDetailPage({ id }: Props) {
         </button>
         <h1 className="text-base font-bold text-gray-900 flex-1 truncate">{listing.title}</h1>
         {!isOwner && user && (
-          <button
-            onClick={toggleFavorite}
-            className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition"
-          >
-            <Heart className={`w-4.5 h-4.5 ${favorited ? 'fill-rose-500 text-rose-500' : 'text-gray-500'}`} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setShowReport(true)}
+              className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition"
+              title="Report listing"
+            >
+              <Flag className="w-4 h-4 text-gray-500" />
+            </button>
+            <button
+              onClick={toggleFavorite}
+              className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition"
+            >
+              <Heart className={`w-4.5 h-4.5 ${favorited ? 'fill-rose-500 text-rose-500' : 'text-gray-500'}`} />
+            </button>
+          </div>
         )}
         {isOwner && (
           <div className="flex items-center gap-1.5">
@@ -237,7 +258,13 @@ export default function ListingDetailPage({ id }: Props) {
             Meetup Info
           </h3>
           <p className="text-sm text-gray-600">{listing.meetup_location}</p>
-          <p className="text-sm text-gray-500 mt-0.5">{listing.precise_spot}</p>
+          {preciseSpot ? (
+            <p className="text-sm text-gray-500 mt-0.5">{preciseSpot}</p>
+          ) : (
+            <p className="text-sm text-gray-400 mt-0.5 italic">
+              {user ? 'Message the seller to get the exact meetup spot.' : 'Sign in and message the seller for the exact meetup spot.'}
+            </p>
+          )}
         </div>
 
         {/* Seller card */}
@@ -275,6 +302,14 @@ export default function ListingDetailPage({ id }: Props) {
             )}
           </button>
         </div>
+      )}
+
+      {showReport && (
+        <ReportModal
+          targetType="listing"
+          targetId={listing.id}
+          onClose={() => setShowReport(false)}
+        />
       )}
     </div>
   );
