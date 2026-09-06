@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
-import { ChevronLeft, Send, Package, ArrowLeft } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { ChevronLeft, Send, Package, ArrowLeft, MoreVertical, Flag, Ban, ShieldCheck } from 'lucide-react';
+import { supabase, LISTING_COLUMNS } from '@/lib/supabase';
 import { useRouter } from '@/context/RouterContext';
 import { useAuth } from '@/context/AuthContext';
 import type { Message, Conversation, Listing, Profile } from '@/lib/types';
 import { formatPrice, timeAgo } from '@/lib/constants';
+import ReportModal from '@/components/ReportModal';
 
 interface ConvData extends Conversation {
   listing: Listing | null;
@@ -20,6 +21,11 @@ export default function ChatPage({ conversationId }: { conversationId: string })
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockChecked, setBlockChecked] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,10 +34,22 @@ export default function ChatPage({ conversationId }: { conversationId: string })
     async function load() {
       const { data: convData } = await supabase
         .from('conversations')
-        .select('*, listing:listing_id(*), buyer:buyer_id(*), seller:seller_id(*)')
+        .select(`*, listing:listing_id(${LISTING_COLUMNS}), buyer:buyer_id(*), seller:seller_id(*)`)
         .eq('id', conversationId)
         .maybeSingle();
       setConv(convData as ConvData | null);
+
+      if (convData) {
+        const otherId = convData.buyer_id === user.id ? convData.seller_id : convData.buyer_id;
+        const { data: block } = await supabase
+          .from('blocked_users')
+          .select('id')
+          .eq('blocker_id', user.id)
+          .eq('blocked_id', otherId)
+          .maybeSingle();
+        setIsBlocked(!!block);
+        setBlockChecked(true);
+      }
 
       const { data: msgs } = await supabase
         .from('messages')
@@ -83,12 +101,12 @@ export default function ChatPage({ conversationId }: { conversationId: string })
 
   async function sendMessage(e: React.FormEvent) {
     e.preventDefault();
-    if (!newMessage.trim() || !user || sending) return;
+    if (!newMessage.trim() || !user || sending || isBlocked) return;
     setSending(true);
     const body = newMessage.trim();
     setNewMessage('');
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('messages')
       .insert({
         conversation_id: conversationId,
@@ -100,8 +118,26 @@ export default function ChatPage({ conversationId }: { conversationId: string })
 
     if (data) {
       setMessages((prev) => [...prev, data as Message]);
+    } else if (error) {
+      setSendError("This message couldn't be delivered.");
+      setNewMessage(body);
     }
     setSending(false);
+  }
+
+  async function handleToggleBlock() {
+    if (!user || !conv) return;
+    const otherId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
+    setShowMenu(false);
+
+    if (isBlocked) {
+      await supabase.from('blocked_users').delete().eq('blocker_id', user.id).eq('blocked_id', otherId);
+      setIsBlocked(false);
+    } else {
+      if (!confirm('Block this user? They will no longer be able to message you.')) return;
+      await supabase.from('blocked_users').insert({ blocker_id: user.id, blocked_id: otherId });
+      setIsBlocked(true);
+    }
   }
 
   if (loading) {
@@ -140,7 +176,51 @@ export default function ChatPage({ conversationId }: { conversationId: string })
           <p className="font-semibold text-gray-900 text-sm truncate">{otherParty?.full_name || 'Unknown'}</p>
           <p className="text-[10px] text-gray-400">Marketplace member</p>
         </div>
+        <div className="relative">
+          <button
+            onClick={() => setShowMenu((v) => !v)}
+            className="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
+          >
+            <MoreVertical className="w-5 h-5 text-gray-500" />
+          </button>
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+              <div className="absolute right-0 top-11 z-50 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 w-48">
+                <button
+                  onClick={() => { setShowMenu(false); setShowReport(true); }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <Flag className="w-4 h-4 text-gray-400" />
+                  Report user
+                </button>
+                <button
+                  onClick={handleToggleBlock}
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-2"
+                >
+                  {isBlocked ? (
+                    <>
+                      <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                      <span className="text-emerald-600">Unblock user</span>
+                    </>
+                  ) : (
+                    <>
+                      <Ban className="w-4 h-4 text-rose-500" />
+                      <span className="text-rose-600">Block user</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </header>
+
+      {isBlocked && (
+        <div className="bg-rose-50 border-b border-rose-100 px-4 py-2 text-center">
+          <p className="text-xs text-rose-600">You've blocked this user. Unblock them to send messages.</p>
+        </div>
+      )}
 
       {listing && (
         <div
@@ -196,23 +276,33 @@ export default function ChatPage({ conversationId }: { conversationId: string })
       </div>
 
       <div className="bg-white border-t border-gray-200 px-3 py-2.5 safe-area-pb">
+        {sendError && <p className="text-xs text-rose-500 mb-1.5 px-1">{sendError}</p>}
         <form onSubmit={sendMessage} className="flex items-center gap-2">
           <input
             type="text"
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 px-4 py-2.5 rounded-full bg-gray-100 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:bg-white transition"
+            onChange={(e) => { setNewMessage(e.target.value); setSendError(null); }}
+            placeholder={isBlocked ? 'Unblock to send messages' : 'Type a message...'}
+            disabled={isBlocked}
+            className="flex-1 px-4 py-2.5 rounded-full bg-gray-100 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:bg-white transition disabled:opacity-60"
           />
           <button
             type="submit"
-            disabled={!newMessage.trim() || sending}
+            disabled={!newMessage.trim() || sending || isBlocked}
             className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md hover:shadow-lg transition disabled:opacity-40 flex-shrink-0"
           >
             <Send className="w-4.5 h-4.5" />
           </button>
         </form>
       </div>
+
+      {showReport && otherParty && (
+        <ReportModal
+          targetType="user"
+          targetId={otherParty.id}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </div>
   );
 }
