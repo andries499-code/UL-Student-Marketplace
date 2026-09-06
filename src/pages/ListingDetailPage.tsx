@@ -251,7 +251,7 @@ export default function ListingDetailPage({ id }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">{listing.seller.full_name || 'Unknown'}</p>
-              <p className="text-xs text-gray-400">Verified UL Student • View profile</p>
+              <p className="text-xs text-gray-400">View profile</p>
             </div>
           </div>
         )}
