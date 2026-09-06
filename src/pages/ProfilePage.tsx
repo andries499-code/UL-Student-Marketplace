@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, LogOut, Save, Mail, Phone, User, Package } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase, LISTING_COLUMNS } from '@/lib/supabase';
 import { useRouter } from '@/context/RouterContext';
 import { useAuth } from '@/context/AuthContext';
 import type { Profile, Listing } from '@/lib/types';
@@ -41,7 +41,7 @@ export default function ProfilePage({ userId }: Props) {
 
       const { data: l } = await supabase
         .from('listings')
-        .select('*, seller:seller_id(*)')
+        .select(`${LISTING_COLUMNS}, seller:seller_id(*)`)
         .eq('seller_id', targetId)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
