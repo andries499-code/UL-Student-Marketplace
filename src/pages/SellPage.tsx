@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { ChevronLeft, X, ImagePlus, Loader2, Check, Tag } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase, LISTING_COLUMNS } from '@/lib/supabase';
 import { useRouter } from '@/context/RouterContext';
 import { useAuth } from '@/context/AuthContext';
 import type { Category, Condition, MeetupLocation, Listing } from '@/lib/types';
@@ -40,7 +40,7 @@ export default function SellPage({ editId }: Props) {
   useEffect(() => {
     if (!editId) return;
     async function loadListing() {
-      const { data } = await supabase.from('listings').select('*').eq('id', editId).maybeSingle();
+      const { data } = await supabase.from('listings').select(LISTING_COLUMNS).eq('id', editId).maybeSingle();
       if (data) {
         const l = data as Listing;
         setTitle(l.title);
@@ -50,12 +50,17 @@ export default function SellPage({ editId }: Props) {
         setCondition(l.condition);
         setImageUrls(l.image_urls || []);
         setMeetupLocation(l.meetup_location);
-        setPreciseSpot(l.precise_spot);
         setAuthor(l.author || '');
         setEdition(l.edition || '');
         setModuleCode(l.module_code || '');
         setFaculty(l.faculty || '');
         setPowerType(l.power_type || '');
+
+        // precise_spot is restricted at the DB level and not returned by
+        // the general select above — fetch it via RPC (the owner is
+        // always authorized to see their own listing's precise spot).
+        const { data: spot } = await supabase.rpc('get_precise_spot', { p_listing_id: editId });
+        setPreciseSpot(spot ?? '');
       }
       setLoading(false);
     }
