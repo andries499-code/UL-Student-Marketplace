@@ -46,7 +46,7 @@ export interface Listing {
   faculty: string | null;
   power_type: string | null;
   meetup_location: MeetupLocation;
-  precise_spot: string;
+  precise_spot?: string;
   status: ListingStatus;
   created_at: string;
   updated_at: string;
@@ -80,5 +80,26 @@ export interface Message {
   sender_id: string;
   body: string;
   read_at: string | null;
+  created_at: string;
+}
+
+export type ReportTargetType = 'listing' | 'user';
+export type ReportStatus = 'open' | 'reviewing' | 'resolved' | 'dismissed';
+
+export interface Report {
+  id: string;
+  reporter_id: string;
+  target_type: ReportTargetType;
+  target_id: string;
+  reason: string;
+  description: string | null;
+  status: ReportStatus;
+  created_at: string;
+}
+
+export interface BlockedUser {
+  id: string;
+  blocker_id: string;
+  blocked_id: string;
   created_at: string;
 }
