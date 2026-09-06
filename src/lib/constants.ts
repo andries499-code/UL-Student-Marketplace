@@ -37,8 +37,6 @@ export const FACULTIES = [
   'Other',
 ] as const;
 
-export const CAMPUS_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9.-]+\.)*ac\.za$/i;
-
 export const CATEGORY_ICONS: Record<Category, string> = {
   Textbooks: 'BookOpen',
   Appliances: 'Refrigerator',
@@ -84,8 +82,4 @@ export function timeAgo(dateString: string): string {
   const months = Math.floor(days / 30);
   if (months < 12) return `${months}mo ago`;
   return Math.floor(days / 365) + 'y ago';
-}
-
-export function isCampusEmail(email: string): boolean {
-  return CAMPUS_EMAIL_REGEX.test(email.trim());
 }
