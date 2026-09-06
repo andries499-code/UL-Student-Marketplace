@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { MessageSquare } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase, LISTING_COLUMNS } from '@/lib/supabase';
 import { useRouter } from '@/context/RouterContext';
 import { useAuth } from '@/context/AuthContext';
 import type { Conversation, Message, Listing, Profile } from '@/lib/types';
@@ -24,7 +24,7 @@ export default function ChatsPage() {
     async function load() {
       const { data } = await supabase
         .from('conversations')
-        .select('*, listing:listing_id(*), buyer:buyer_id(*), seller:seller_id(*)')
+        .select(`*, listing:listing_id(${LISTING_COLUMNS}), buyer:buyer_id(*), seller:seller_id(*)`)
         .or(`buyer_id.eq.${user!.id},seller_id.eq.${user!.id}`)
         .order('updated_at', { ascending: false });
 
