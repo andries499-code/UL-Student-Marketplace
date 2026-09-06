@@ -37,6 +37,23 @@ export const FACULTIES = [
   'Other',
 ] as const;
 
+export const LISTING_REPORT_REASONS = [
+  'Prohibited or illegal item',
+  'Scam or suspicious pricing',
+  'Spam or fake listing',
+  'Wrong category',
+  'Inappropriate content',
+  'Other',
+] as const;
+
+export const USER_REPORT_REASONS = [
+  'Harassment or abuse',
+  'Scam attempt',
+  'Suspicious behaviour',
+  'Inappropriate messages',
+  'Other',
+] as const;
+
 export const CATEGORY_ICONS: Record<Category, string> = {
   Textbooks: 'BookOpen',
   Appliances: 'Refrigerator',
