@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { GraduationCap, Eye, EyeOff, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { isCampusEmail } from '@/lib/constants';
 
 export default function AuthPage() {
   const { signIn, signUp } = useAuth();
@@ -13,17 +12,10 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const emailValid = isCampusEmail(email);
-  const showEmailError = email.length > 0 && !emailValid;
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (mode === 'signup' && !emailValid) {
-      setError('Please use a valid .ac.za campus email address.');
-      return;
-    }
     if (password.length < 6) {
       setError('Password must be at least 6 characters.');
       return;
@@ -91,23 +83,14 @@ export default function AuthPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Campus Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="student@keystudent.ul.ac.za"
-                className={`w-full px-4 py-3 rounded-xl border text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition ${
-                  showEmailError
-                    ? 'border-rose-300 focus:ring-rose-400/30 focus:border-rose-400'
-                    : 'border-gray-200 focus:ring-emerald-500/40 focus:border-emerald-400'
-                }`}
+                placeholder="you@example.com"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-400 transition"
               />
-              {showEmailError && (
-                <p className="text-xs text-rose-600 mt-1.5">
-                  Only .ac.za campus emails are allowed (e.g. @keystudent.ul.ac.za).
-                </p>
-              )}
             </div>
 
             <div>
@@ -155,7 +138,7 @@ export default function AuthPage() {
           <div className="mt-6 flex items-start gap-3 bg-emerald-50 border border-emerald-100 rounded-xl p-3.5">
             <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-emerald-700 leading-relaxed">
-              Registration is restricted to verified <strong>.ac.za</strong> campus emails to keep the marketplace safe for UL students only.
+              Built for the University of Limpopo student community — please be respectful and only list items relevant to fellow students.
             </p>
           </div>
         </div>
