@@ -1,0 +1,330 @@
+// Hand-written to mirror `supabase gen types typescript` output, built from
+// the SQL in supabase/migrations/. Regenerate with the Supabase CLI once you
+// have a linked project, rather than hand-editing this indefinitely:
+//   supabase gen types typescript --project-id <id> > src/lib/database.types.ts
+
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string;
+          full_name: string;
+          phone: string | null;
+          bio: string | null;
+          avatar_url: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id: string;
+          full_name?: string;
+          phone?: string | null;
+          bio?: string | null;
+          avatar_url?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          full_name?: string;
+          phone?: string | null;
+          bio?: string | null;
+          avatar_url?: string | null;
+          created_at?: string | null;
+        };
+        Relationships: [];
+      };
+      listings: {
+        Row: {
+          id: string;
+          seller_id: string;
+          title: string;
+          category: string;
+          price: number;
+          description: string;
+          condition: string;
+          image_urls: string[];
+          author: string | null;
+          edition: string | null;
+          module_code: string | null;
+          faculty: string | null;
+          power_type: string | null;
+          meetup_location: string;
+          precise_spot: string;
+          status: string;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          seller_id?: string;
+          title: string;
+          category: string;
+          price?: number;
+          description?: string;
+          condition: string;
+          image_urls?: string[];
+          author?: string | null;
+          edition?: string | null;
+          module_code?: string | null;
+          faculty?: string | null;
+          power_type?: string | null;
+          meetup_location: string;
+          precise_spot?: string;
+          status?: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          seller_id?: string;
+          title?: string;
+          category?: string;
+          price?: number;
+          description?: string;
+          condition?: string;
+          image_urls?: string[];
+          author?: string | null;
+          edition?: string | null;
+          module_code?: string | null;
+          faculty?: string | null;
+          power_type?: string | null;
+          meetup_location?: string;
+          precise_spot?: string;
+          status?: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'listings_seller_id_fkey';
+            columns: ['seller_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      favorites: {
+        Row: {
+          id: string;
+          user_id: string;
+          listing_id: string;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          listing_id: string;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          listing_id?: string;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'favorites_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'favorites_listing_id_fkey';
+            columns: ['listing_id'];
+            isOneToOne: false;
+            referencedRelation: 'listings';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      conversations: {
+        Row: {
+          id: string;
+          listing_id: string;
+          buyer_id: string;
+          seller_id: string;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          listing_id: string;
+          buyer_id?: string;
+          seller_id: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          listing_id?: string;
+          buyer_id?: string;
+          seller_id?: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'conversations_listing_id_fkey';
+            columns: ['listing_id'];
+            isOneToOne: false;
+            referencedRelation: 'listings';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_buyer_id_fkey';
+            columns: ['buyer_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_seller_id_fkey';
+            columns: ['seller_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          body: string;
+          read_at: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_id?: string;
+          body: string;
+          read_at?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          sender_id?: string;
+          body?: string;
+          read_at?: string | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'messages_conversation_id_fkey';
+            columns: ['conversation_id'];
+            isOneToOne: false;
+            referencedRelation: 'conversations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'messages_sender_id_fkey';
+            columns: ['sender_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          target_type: string;
+          target_id: string;
+          reason: string;
+          description: string | null;
+          status: string;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          reporter_id?: string;
+          target_type: string;
+          target_id: string;
+          reason: string;
+          description?: string | null;
+          status?: string;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          reporter_id?: string;
+          target_type?: string;
+          target_id?: string;
+          reason?: string;
+          description?: string | null;
+          status?: string;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'reports_reporter_id_fkey';
+            columns: ['reporter_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      blocked_users: {
+        Row: {
+          id: string;
+          blocker_id: string;
+          blocked_id: string;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          blocker_id?: string;
+          blocked_id: string;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          blocker_id?: string;
+          blocked_id?: string;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'blocked_users_blocker_id_fkey';
+            columns: ['blocker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'blocked_users_blocked_id_fkey';
+            columns: ['blocked_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: {
+      get_precise_spot: {
+        Args: { p_listing_id: string };
+        Returns: string | null;
+      };
+    };
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
+  };
+}
